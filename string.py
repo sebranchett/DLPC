@@ -59,7 +59,9 @@ for icycles in range(max_no_of_cylces):
     times_temps = comm.gather(times_temps, root = 0)
 
     if (rankid == 0):
-        all_times_temps = all_times_temps + times_temps
+        for i, time_temp in enumerate(times_temps):
+            if time_temp != ['', '']:
+                all_times_temps = all_times_temps + time_temp
         print('Gathered times and temps are',all_times_temps)
 
 if (rankid == 0):
