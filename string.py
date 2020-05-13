@@ -7,6 +7,7 @@ nranks = comm.Get_size()
 rankid = comm.Get_rank()
 
 max_no_of_cylces = 3
+all_times_temps = []
 
 if (rankid == 0):
     start = MPI.Wtime()
@@ -49,19 +50,17 @@ for icycles in range(max_no_of_cylces):
     filenames = comm.scatter(filenames, root = 0)
     filecontents = comm.scatter(filecontents, root = 0)
 
-    times = []
-    temps = []
+    times_temps = []
 
 # This is where the work is done
 
-    temps = filecontents[5:7]
-    times = filenames[11:19].replace("_",":")
+    times_temps = [filenames[11:19].replace("_",":"), filecontents[5:7]]
 
-    temps = comm.gather(temps, root = 0)
-    times = comm.gather(times, root = 0)
+    times_temps = comm.gather(times_temps, root = 0)
 
     if (rankid == 0):
-        print('Gathered times and temps are',times,temps)
+        all_times_temps = all_times_temps + times_temps
+        print('Gathered times and temps are',all_times_temps)
 
 if (rankid == 0):
     end = MPI.Wtime()
