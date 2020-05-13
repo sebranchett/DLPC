@@ -1,6 +1,8 @@
 from os import listdir, rename, remove
 from time import sleep
 from mpi4py import MPI
+from csv import writer
+import datetime
 
 comm = MPI.COMM_WORLD
 nranks = comm.Get_size()
@@ -50,10 +52,12 @@ for icycles in range(max_no_of_cylces):
     filenames = comm.scatter(filenames, root = 0)
     filecontents = comm.scatter(filecontents, root = 0)
 
-    times_temps = []
-
 # This is where the work is done
 
+    times_temps = []
+
+    parsed_date_time = datetime.datetime.strptime(filenames, '%Y_%m_%d_%H_%M_%S.log')
+    print('rank and parsed date time',rankid,parsed_date_time)
     times_temps = [filenames[11:19].replace("_",":"), filecontents[5:7]]
 
     times_temps = comm.gather(times_temps, root = 0)
@@ -61,6 +65,8 @@ for icycles in range(max_no_of_cylces):
     if (rankid == 0):
         for i, time_temp in enumerate(times_temps):
             if time_temp != ['', '']:
+                parsed_time = datetime.datetime.strptime(time_temp[0], '%H:%M:%S')
+                converted = [parsed_time.time(), float(time_temp[1])]
                 all_times_temps = all_times_temps + time_temp
         print('Gathered times and temps are',all_times_temps)
 
@@ -68,3 +74,6 @@ if (rankid == 0):
     end = MPI.Wtime()
     runtime = end - start
     print('Runtime is ',runtime)
+    # with open("output.csv", "wb") as f:
+        # file_writer = writer(f)
+        # file_writer.writerows(all_times_temps)
