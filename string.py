@@ -17,7 +17,7 @@ for icycles in range(max_no_of_cylces):
 # prepare log files, as many as there are, up to one per rank
     if (rankid == 0):
         while not listdir('./logs'):
-            sleep(1000)
+            sleep(1)
         filenames=listdir('./logs')[:nranks]
         filecontents = []
         cleanup = []
