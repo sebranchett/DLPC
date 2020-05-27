@@ -1,2 +1,4 @@
 *.log
 backup_logs/
+*.csv
+logs/
