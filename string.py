@@ -7,15 +7,16 @@ nranks = comm.Get_size()
 rankid = comm.Get_rank()
 
 max_no_of_cylces = 3
-all_times_temps = []
 
 if (rankid == 0):
     start = MPI.Wtime()
+    all_times_temps = []
 
 for icycles in range(max_no_of_cylces):
     
 # prepare log files, as many as there are, up to one per rank
     if (rankid == 0):
+        # check the logs directory every second until it's not empty
         while not listdir('./logs'):
             sleep(1)
         filenames=listdir('./logs')[:nranks]
@@ -69,7 +70,7 @@ for icycles in range(max_no_of_cylces):
     if (rankid == 0):
         for time_temp in times_temps:
             if time_temp != ['', '']:
-                all_times_temps = all_times_temps + time_temp
+                all_times_temps.append(time_temp)
 # display the results
         print('Gathered times and temps are',all_times_temps)
 
