@@ -1,11 +1,13 @@
 import matplotlib.pyplot as plt
 from csv import reader
 from datetime import datetime, timedelta
+from operator import itemgetter
 
-# read time and temperature data from a csv file
+# read and sort time and temperature data from a csv file
 with open('output.csv', newline='') as f:
     data_reader = reader(f)
     data = list(data_reader)
+data = sorted(data, key= itemgetter(0))
 
 # convert temperatures to real numbers
 temps = [float(item[1]) for item in data]
