@@ -24,6 +24,9 @@ for step in range(3):
 
 # plot the data
 plt.plot(time_vals, temps, marker = 'o')
+plt.title('Temperature of master node DLPC')
+plt.xlabel('Time')
+plt.ylabel('Temperature (degrees Celcius)')
 plt.xticks(tick_at,tick_label)
 plt.yticks(range(0, 81, 10))
 plt.show()
