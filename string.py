@@ -1,6 +1,7 @@
 from os import listdir, rename, remove
 from time import sleep
 from mpi4py import MPI
+from csv import writer
 
 comm = MPI.COMM_WORLD
 nranks = comm.Get_size()
@@ -71,8 +72,11 @@ for icycles in range(max_no_of_cylces):
         for time_temp in times_temps:
             if time_temp != ['', '']:
                 all_times_temps.append(time_temp)
-# display the results
+# output the results
         print('Gathered times and temps are',all_times_temps)
+        with open("output.csv", "w", newline="") as f:
+            graph_writer = writer(f)
+            graph_writer.writerows(all_times_temps)
 
 # display the time required to process log files
 if (rankid == 0):
