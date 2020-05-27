@@ -1,3 +1,6 @@
+#!/usr/bin/python
+
+import sys
 from os import listdir, rename, remove
 from time import sleep
 from mpi4py import MPI
@@ -7,13 +10,18 @@ comm = MPI.COMM_WORLD
 nranks = comm.Get_size()
 rankid = comm.Get_rank()
 
-max_no_of_cylces = 3
+seconds_to_process = 1
+max_no_of_cycles = 3
+
+if len(sys.argv) > 1: seconds_to_process = int(sys.argv[1])
+if len(sys.argv) > 2: max_no_of_cycles = int(sys.argv[2])
+print('seconds_to_process is ',seconds_to_process,'max_no_of_cycles is ',max_no_of_cycles)
 
 if (rankid == 0):
     start = MPI.Wtime()
     all_times_temps = []
 
-for icycles in range(max_no_of_cylces):
+for icycles in range(max_no_of_cycles):
     
 # prepare log files, as many as there are, up to one per rank
     if (rankid == 0):
@@ -59,9 +67,8 @@ for icycles in range(max_no_of_cylces):
     filenames = comm.scatter(filenames, root = 0)
     filecontents = comm.scatter(filecontents, root = 0)
 
-    times_temps = []
-
-# 'process' the log files
+# 'process' the log files - time delay simulates the processing time
+    sleep(seconds_to_process)
     times_temps = [filenames[11:19].replace("_",":"), filecontents[5:7]]
 
 # gather the results from the ranks
