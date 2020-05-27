@@ -14,12 +14,15 @@ if (rankid == 0):
 
 for icycles in range(max_no_of_cylces):
     
+# prepare log files, as many as there are, up to one per rank
     if (rankid == 0):
         while not listdir('./logs'):
-            sleep(1)
+            sleep(1000)
         filenames=listdir('./logs')[:nranks]
         filecontents = []
         cleanup = []
+
+# move log files to old_logs folder and delete non-log files
         for filename in filenames:
             if filename.endswith('.log'):
                 f = open(filename, "r")
@@ -30,11 +33,14 @@ for icycles in range(max_no_of_cylces):
                 print('clean up', filename)
                 remove('./logs/'+filename)
                 cleanup.append(filename)
+
+# tidy up the list of file names to process
         for filename in cleanup:
             filenames.remove(filename)
         nfiles = len(filenames)
         if nfiles != len(filecontents): print('Something went wrong with read')
-        # fill up ranks with empty filenames and contents to avoid scatter error
+
+# fill up ranks with empty filenames and contents to avoid scatter error
         while (nfiles < nranks):
             filenames.append("")
             filecontents.append("")
@@ -47,23 +53,27 @@ for icycles in range(max_no_of_cylces):
         print('no. filenames is',nfiles)
         print('Input filenames are', filenames)
 
+# distribute the files over the ranks
     filenames = comm.scatter(filenames, root = 0)
     filecontents = comm.scatter(filecontents, root = 0)
 
     times_temps = []
 
-# This is where the work is done
-
+# 'process' the log files
     times_temps = [filenames[11:19].replace("_",":"), filecontents[5:7]]
 
+# gather the results from the ranks
     times_temps = comm.gather(times_temps, root = 0)
 
+# tidy up the empty filenames which were added to avoid scatter error
     if (rankid == 0):
         for time_temp in times_temps:
             if time_temp != ['', '']:
                 all_times_temps = all_times_temps + time_temp
+# display the results
         print('Gathered times and temps are',all_times_temps)
 
+# display the time required to process log files
 if (rankid == 0):
     end = MPI.Wtime()
     runtime = end - start
