@@ -4,7 +4,8 @@ import sys
 from mpi4py import MPI
 from csv import writer
 import random
-from numpy import shape, reshape
+from numpy import shape, reshape, where
+import matplotlib.pyplot as plt
 
 comm = MPI.COMM_WORLD
 nranks = comm.Get_size()
@@ -19,7 +20,6 @@ if len(sys.argv) > 1: min_no_of_points = int(sys.argv[1])
 # calculate the number of points per rank
 points_per_rank = int(min_no_of_points / nranks)
 if min_no_of_points % nranks != 0: points_per_rank += 1
-print('number of points per rank will be', points_per_rank)
 
 results = []
 
@@ -48,7 +48,6 @@ results = comm.gather(results, root = 0)
 # calculate pi
 if (rankid == 0):
     results = reshape(results, (-1,5))
-    #SEB print('results are',results)
     pi = 4. * results.sum(axis=0)[-1] / shape(results)[0]
     print('number of points is',shape(results)[0])
     print('estimate of pi is',pi)
@@ -64,3 +63,20 @@ if (rankid == 0):
     with open("pi.csv", "w", newline="") as f:
         graph_writer = writer(f)
         graph_writer.writerows(results)
+
+    inside_circle = results[where(results[:,4] == 1)]
+    outside_circle = results[where(results[:,4] != 1)]
+    data = (inside_circle, outside_circle)
+    colors = ("blue", "orange")
+    groups = ("inside circle", "outside circle")
+
+    fig = plt.figure(1, figsize=(6, 6))
+    ax = fig.add_subplot(1, 1, 1)
+
+    for data, color, group in zip(data, colors, groups):
+        ax.scatter(data[:,2], data[:,3], c=color, label=group, marker="x")
+
+    plt.title('Estimate of pi with '+str(shape(results)[0])+' points is '+\
+              str(pi))
+    plt.legend(loc=2)
+    plt.show()
