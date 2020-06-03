@@ -48,8 +48,9 @@ results = comm.gather(results, root = 0)
 # calculate pi
 if (rankid == 0):
     results = reshape(results, (-1,5))
-    pi = 4. * results.sum(axis=0)[-1] / shape(results)[0]
-    print('number of points is',shape(results)[0])
+    npoints = shape(results)[0]
+    pi = 4. * results.sum(axis=0)[-1] / npoints
+    print('number of points is',npoints)
     print('estimate of pi is',pi)
 
 # display the time required to process log files
@@ -60,7 +61,8 @@ if (rankid == 0):
 
 # output the results
 if (rankid == 0):
-    with open("pi.csv", "w", newline="") as f:
+    filename = 'pi_estimate_'+str(npoints)+'_points.csv'
+    with open(filename, "w", newline="") as f:
         graph_writer = writer(f)
         graph_writer.writerows(results)
 
@@ -76,7 +78,8 @@ if (rankid == 0):
     for data, color, group in zip(data, colors, groups):
         ax.scatter(data[:,2], data[:,3], c=color, label=group, marker="x")
 
-    plt.title('Estimate of pi with '+str(shape(results)[0])+' points is '+\
+    plt.title('Estimate of pi with '+str(npoints)+' points is '+\
               str(pi))
     plt.legend(loc=2)
-    plt.show()
+    filename = 'pi_estimate_'+str(npoints)+'_points.png'
+    plt.savefig(filename)
