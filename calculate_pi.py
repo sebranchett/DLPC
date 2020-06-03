@@ -12,10 +12,15 @@ nranks = comm.Get_size()
 rankid = comm.Get_rank()
 
 min_no_of_points = 30
+my_seed = None
 
 # optional argument provided is the minimum number of points
 # if this number is not divisible by nranks, the no. or points will be larger
 if len(sys.argv) > 1: min_no_of_points = int(sys.argv[1])
+
+# optional second argument provided is the seed to create random numbers
+if len(sys.argv) > 2: my_seed = int(sys.argv[2])+rankid
+random.seed(my_seed)
 
 # calculate the number of points per rank
 points_per_rank = int(min_no_of_points / nranks)
@@ -32,6 +37,7 @@ for point in range(points_per_rank):
 # this is a quater of a circle/square
     x = random.random()
     y = random.random()
+    print(x,y)
 
 # is this point inside (1) or outside (0) a circle of radius 1 with center (0,0)
     if (x*x + y*y) <= 1.:
