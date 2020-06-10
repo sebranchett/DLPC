@@ -35,7 +35,7 @@ for icycles in range(max_no_of_cycles):
 # move log files to old_logs folder and delete non-log files
         for filename in filenames:
             if filename.endswith('.log'):
-                f = open(filename, "r")
+                f = open('./logs/'+filename, "r")
                 filecontents.append(f.read())
                 f.close()
                 rename('./logs/'+filename, './old_logs/'+filename)
@@ -69,7 +69,7 @@ for icycles in range(max_no_of_cycles):
 
 # 'process' the log files - time delay simulates the processing time
     sleep(seconds_to_process)
-    times_temps = [filenames[11:19].replace("_",":"), filecontents[5:7]]
+    times_temps = [filenames[11:19].replace("_",":"), filecontents[5:9]]
 
 # gather the results from the ranks
     times_temps = comm.gather(times_temps, root = 0)
