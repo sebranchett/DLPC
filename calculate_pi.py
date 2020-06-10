@@ -7,6 +7,39 @@ import random
 from numpy import shape, reshape, where
 import matplotlib.pyplot as plt
 
+def export_results(results, npoints):
+    """Export results to a csv file and create and export a graph.
+    
+    The csv contains the result columns:
+    point index, rank index, x-coordinate, y-coordinate, boolean inside circle?
+    The graph plots points inside the circle in blue and points outside
+    in orange. The calculation and the graph show only one quadrant.
+    npoints is used here to label the graph and the output files.
+    """
+    filename = 'pi_estimate_'+str(npoints)+'_points.csv'
+    with open(filename, "w", newline="") as f:
+        graph_writer = writer(f)
+        graph_writer.writerows(results)
+
+    inside_circle = results[where(results[:,4] == 1)]
+    outside_circle = results[where(results[:,4] != 1)]
+    data = (inside_circle, outside_circle)
+    colors = ("blue", "orange")
+    groups = ("inside circle", "outside circle")
+
+    fig = plt.figure(1, figsize=(6, 6))
+    ax = fig.add_subplot(1, 1, 1)
+
+    for data, color, group in zip(data, colors, groups):
+        ax.scatter(data[:,2], data[:,3], c=color, label=group, marker="x")
+
+    plt.title('Estimate of pi with '+str(npoints)+' points is '+\
+              str(pi))
+    plt.legend(loc=2)
+    filename = 'pi_estimate_'+str(npoints)+'_points.png'
+    plt.savefig(filename)
+    return
+
 comm = MPI.COMM_WORLD
 nranks = comm.Get_size()
 rankid = comm.Get_rank()
@@ -67,25 +100,4 @@ if (rankid == 0):
 
 # output the results
 if (rankid == 0):
-    filename = 'pi_estimate_'+str(npoints)+'_points.csv'
-    with open(filename, "w", newline="") as f:
-        graph_writer = writer(f)
-        graph_writer.writerows(results)
-
-    inside_circle = results[where(results[:,4] == 1)]
-    outside_circle = results[where(results[:,4] != 1)]
-    data = (inside_circle, outside_circle)
-    colors = ("blue", "orange")
-    groups = ("inside circle", "outside circle")
-
-    fig = plt.figure(1, figsize=(6, 6))
-    ax = fig.add_subplot(1, 1, 1)
-
-    for data, color, group in zip(data, colors, groups):
-        ax.scatter(data[:,2], data[:,3], c=color, label=group, marker="x")
-
-    plt.title('Estimate of pi with '+str(npoints)+' points is '+\
-              str(pi))
-    plt.legend(loc=2)
-    filename = 'pi_estimate_'+str(npoints)+'_points.png'
-    plt.savefig(filename)
+    export_results(results, npoints)
