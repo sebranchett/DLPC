@@ -7,7 +7,11 @@ import random
 from numpy import shape, reshape, where
 import matplotlib.pyplot as plt
 
-def export_results(results, npoints):
+comm = MPI.COMM_WORLD
+nranks = comm.Get_size()
+rankid = comm.Get_rank()
+
+def export_results(results, npoints, pi):
     """Export results to a csv file and create and export a graph.
     
     The csv contains the result columns:
@@ -15,6 +19,7 @@ def export_results(results, npoints):
     The graph plots points inside the circle in blue and points outside
     in orange. The calculation and the graph show only one quadrant.
     npoints is used here to label the graph and the output files.
+    pi is used here to label the graph with the estimate of pi.
     """
     filename = 'pi_estimate_'+str(npoints)+'_points.csv'
     with open(filename, "w", newline="") as f:
@@ -40,64 +45,79 @@ def export_results(results, npoints):
     plt.savefig(filename)
     return
 
-comm = MPI.COMM_WORLD
-nranks = comm.Get_size()
-rankid = comm.Get_rank()
+def calculate_pi(points_per_rank):
+    """ calculate pi from random points inside or outside a quarter circle
 
-min_no_of_points = 30
-my_seed = None
+    Each rank generates points_per_rank random points on the surface of a
+    unit square and determines if they lie in a circle of r=1 using Pythagoras.
+    The ratio of points inside the circle and outside is used by the 0th rank
+    to estimate the value of pi:
+    points in quarter circle / all points in unit (quarter) square ~=
+    points in circle / points in square of sides 2r ~=
+    area of circle / area of square =
+    pi * r^2 / (2r)^2 =
+    pi / 4
+    pi ~= 4 * points in quarter circle / all points
+    """
+    results = []
 
-# optional argument provided is the minimum number of points
-# if this number is not divisible by nranks, the no. or points will be larger
-if len(sys.argv) > 1: min_no_of_points = int(sys.argv[1])
+    if (rankid == 0):
+        start = MPI.Wtime()
 
-# optional second argument provided is the seed to create random numbers
-if len(sys.argv) > 2: my_seed = int(sys.argv[2])+rankid
-random.seed(my_seed)
+    for point in range(points_per_rank):
 
-# calculate the number of points per rank
-points_per_rank = int(min_no_of_points / nranks)
-if min_no_of_points % nranks != 0: points_per_rank += 1
+    # generate a random point in 2D between 0 and 1
+    # this is a quater of a circle/square
+        x = random.random()
+        y = random.random()
+        print(x,y)
 
-results = []
+    # is this point inside (1) or outside (0) a circle of radius 1 with center (0,0)
+        if (x*x + y*y) <= 1.:
+            circle = 1
+        else:
+            circle = 0
 
-if (rankid == 0):
-    start = MPI.Wtime()
+        result = [point, rankid, x, y, circle]
+        results.append(result)
 
-for point in range(points_per_rank):
+    # gather the results from the ranks
+    results = comm.gather(results, root = 0)
 
-# generate a random point in 2D between 0 and 1
-# this is a quater of a circle/square
-    x = random.random()
-    y = random.random()
-    print(x,y)
+    # calculate pi
+    if (rankid == 0):
+        results = reshape(results, (-1,5))
+        npoints = shape(results)[0]
+        pi = 4. * results.sum(axis=0)[-1] / npoints
+        print('number of points is',npoints)
+        print('estimate of pi is',pi)
 
-# is this point inside (1) or outside (0) a circle of radius 1 with center (0,0)
-    if (x*x + y*y) <= 1.:
-        circle = 1
-    else:
-        circle = 0
+    # display the time required to process log files
+    if (rankid == 0):
+        end = MPI.Wtime()
+        runtime = end - start
+        print('Runtime is ',runtime)
 
-    result = [point, rankid, x, y, circle]
-    results.append(result)
+    # output the results
+    if (rankid == 0):
+        export_results(results, npoints, pi)
+    return
 
-# gather the results from the ranks
-results = comm.gather(results, root = 0)
+if __name__ == '__main__':
+    
+    min_no_of_points = 30
+    my_seed = None
 
-# calculate pi
-if (rankid == 0):
-    results = reshape(results, (-1,5))
-    npoints = shape(results)[0]
-    pi = 4. * results.sum(axis=0)[-1] / npoints
-    print('number of points is',npoints)
-    print('estimate of pi is',pi)
+    # optional argument provided is the minimum number of points
+    # if this number is not divisible by nranks, the no. or points will be larger
+    if len(sys.argv) > 1: min_no_of_points = int(sys.argv[1])
 
-# display the time required to process log files
-if (rankid == 0):
-    end = MPI.Wtime()
-    runtime = end - start
-    print('Runtime is ',runtime)
+    # optional second argument provided is the seed to create random numbers
+    if len(sys.argv) > 2: my_seed = int(sys.argv[2])+rankid
+    random.seed(my_seed)
 
-# output the results
-if (rankid == 0):
-    export_results(results, npoints)
+    # calculate the number of points per rank
+    points_per_rank = int(min_no_of_points / nranks)
+    if min_no_of_points % nranks != 0: points_per_rank += 1
+
+    calculate_pi(points_per_rank)
