@@ -2,4 +2,5 @@
 backup_logs/
 *.csv
 *.png
+*.out
 logs/
