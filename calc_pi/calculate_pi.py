@@ -5,7 +5,10 @@ from mpi4py import MPI
 from csv import writer
 import random
 from numpy import shape, reshape, where
-import matplotlib.pyplot as plt
+try:
+    import matplotlib.pyplot as plt
+except:
+    pass
 
 comm = MPI.COMM_WORLD
 nranks = comm.Get_size()
@@ -70,7 +73,6 @@ def calculate_pi(points_per_rank):
     # this is a quater of a circle/square
         x = random.random()
         y = random.random()
-        print(x,y)
 
     # is this point inside (1) or outside (0) a circle of radius 1 with center (0,0)
         if (x*x + y*y) <= 1.:
@@ -92,15 +94,14 @@ def calculate_pi(points_per_rank):
         print('number of points is',npoints)
         print('estimate of pi is',pi)
 
-    # display the time required to process log files
-    if (rankid == 0):
+        # display the time required to process log files
         end = MPI.Wtime()
         runtime = end - start
         print('Runtime is ',runtime)
 
-    # output the results
-    if (rankid == 0):
+        # output the results
         export_results(results, npoints, pi)
+
     return
 
 if __name__ == '__main__':
