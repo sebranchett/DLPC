@@ -21,8 +21,8 @@ time_vals = [(datetime.strptime(i,"%X") - lower_date).seconds for i in time_labe
 tick_at = []
 tick_label = []
 for step in range(3):
-    tick_at.append(0 + step*60)
-    tick_label.append(str((lower_date + timedelta(seconds=60*step)).time()))
+    tick_at.append(0 + step*3600)
+    tick_label.append(str((lower_date + timedelta(seconds=3600*step)).time()))
 
 # plot the data
 plt.plot(time_vals, temps, marker = 'o')
@@ -31,4 +31,4 @@ plt.xlabel('Time')
 plt.ylabel('Temperature (degrees Celcius)')
 plt.xticks(tick_at,tick_label)
 plt.yticks(range(0, 81, 10))
-plt.show()
+plt.savefig("plot.png")
