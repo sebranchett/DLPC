@@ -1,0 +1,8 @@
+ssh pi@192.168.0.9 sudo shutdown -h now
+ssh pi@192.168.0.8 sudo shutdown -h now
+ssh pi@192.168.0.7 sudo shutdown -h now
+ssh pi@192.168.0.6 sudo shutdown -h now
+ssh pi@192.168.0.5 sudo shutdown -h now
+ssh pi@192.168.0.4 sudo shutdown -h now
+ssh pi@192.168.0.3 sudo shutdown -h now
+sudo shutdown -h now
